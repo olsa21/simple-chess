@@ -6,7 +6,10 @@ from tkinter import messagebox
 
 blocks = 8
 screenWidth = 800
-blockSize = screenWidth / blocks
+#blockSize = screenWidth / blocks
+blockSize = 100
+padding = (screenWidth - (blocks * blockSize)) /2
+print("padding: " + str(padding))
 colorPossible = (154,225,255)
 
 def placeText(text, x, y, color, size):
@@ -28,7 +31,7 @@ class ChessPiece:
     image: pygame.Surface
 
     def drawPiece(self, window):
-        window.blit(self.image, (self.position[0]*blockSize, self.position[1]*blockSize))
+        window.blit(self.image, (self.position[0]*blockSize  + padding, self.position[1]*blockSize + padding))
 
     def getPossibleMoves(self):
         blockToDrawList = list()
@@ -174,9 +177,9 @@ class Board:
         for i in range(8):
             for j in range(8):
                 if isBlack:
-                    pygame.draw.rect(window, BLACK, (i*blockWidth, j*blockWidth, blockWidth, blockWidth))
+                    pygame.draw.rect(window, BLACK, (i*blockWidth+ padding, j*blockWidth + padding, blockWidth, blockWidth))
                 else:
-                    pygame.draw.rect(window, WHITE, (i*blockWidth, j*blockWidth, blockWidth, blockWidth))
+                    pygame.draw.rect(window, WHITE, (i*blockWidth + padding, j*blockWidth + padding, blockWidth, blockWidth))
                 isBlack = not isBlack
             isBlack = not isBlack
 
@@ -194,8 +197,7 @@ class Board:
 
         board.focusedPiece = piece
 
-        blockWidth = screenWidth // 8
-        x= (8-1)*blockWidth
+        blockWidth = blockSize
 
         possibleMoves = piece.getPossibleMoves()
 
