@@ -7,6 +7,7 @@ from tkinter import messagebox
 blocks = 8
 screenWidth = 800
 blockSize = screenWidth // blocks
+colorPossible = (154,225,255)
 
 class ChessPiece:
     name: str
@@ -29,8 +30,8 @@ class ChessPiece:
         #if the tuple is not occupied
 
     	    #Darf sich an ein Feld bewegen, wenn es frei ist (None) oder wenn dort eine Figur mit anderer Farbe ist
-            if board.boardArray[piece.position[0]+i[0]][piece.position[1]+i[1]] == None or board.boardArray[piece.position[0]+i[0]][piece.position[1]+i[1]].color != piece.color:
-                blockToDrawList.append((piece.position[0]+i[0], piece.position[1]+i[1]))
+            if board.boardArray[self.position[0]+i[0]][self.position[1]+i[1]] == None or board.boardArray[self.position[0]+i[0]][self.position[1]+i[1]].color != self.color:
+                blockToDrawList.append((self.position[0]+i[0], self.position[1]+i[1]))
             
             #alle Möglichkeiten ausgeben
             #blockToDrawList.append((piece.position[0] + i[0], piece.position[1] + i[1]))
@@ -122,6 +123,10 @@ class Board:
             self.boardArray[xPosition][yPosition] = i
 
     def movePiece(self, piece, newPosition):
+        #Prüfen ob neues Feld erreichbar ist
+        if newPosition not in piece.getPossibleMoves():
+            return False
+
         #Alte Position freigeben
         self.boardArray[piece.position[0]][piece.position[1]] = None
 
@@ -136,6 +141,7 @@ class Board:
 
         #Fokus aufheben
         self.focusedPiece = None
+        return True
 
     def getPiece(self, x, y):
         return self.boardArray[x][y]
@@ -167,7 +173,7 @@ def drawBoard(window, board):
     pygame.display.update()
 
 #evtl Board Klasse hinzufügen
-def colorizeBlock(window, piece, color, board):
+def focusPieceAndColor(window, piece, color, board):
     drawBoard(window, board)
 
     board.focusedPiece = piece
@@ -240,13 +246,6 @@ PawnWhite6 = Pawn((5,6), "white")
 PawnWhite7 = Pawn((6,6), "white")
 PawnWhite8 = Pawn((7,6), "white")
 
-#image = pygame.image.load("./assets/bishop_white.png")
-
-#image = pygame.image.load(KingBlack.imageFile)
-#window.blit(image, (KingBlack.position[0]*screenWidth//8, KingBlack.position[1]*screenWidth//8))
-
-#window.blit(KingBlack.image, (KingBlack.position[0]*blockSize, KingBlack.position[1]*blockSize))
-
 WhitePieceList = [KingWhite, QueenWhite, RookWhite1, RookWhite2, BishopWhite1, BishopWhite2, KnightWhite1, KnightWhite2, PawnWhite1, PawnWhite2, PawnWhite3, PawnWhite4, PawnWhite5, PawnWhite6, PawnWhite7, PawnWhite8]
 
 
@@ -256,7 +255,7 @@ board = Board(WhitePieceList, BlackPieceList)
 drawBoard(window, board)
 pygame.display.update()
 
-color = (154,225,255)
+
 #colorizeBlock(window, KnightWhite2, color, board)
 
 
@@ -280,27 +279,57 @@ while running:
             y = pos[1] // (screenWidth // blocks)
             print("x: ", x, " y: ", y)
 
-            piece = board.getPiece(x, y)
-            print(piece)
+            pieceOrNone = board.getPiece(x, y)
+            print(pieceOrNone)
 
-            #Wenn bereits Fokussiert ist, dann wird die Fokussierung aufgehoben
-            if piece == board.focusedPiece:
-                board.focusedPiece = None
-                drawBoard(window, board)
-                pygame.display.update()
+            #if pieceOrNone == None and board.focusedPiece == None:
+            #    print("no piece focussed")
+            #    continue
+            #    
+#
+            #if board.focusedPiece == None:
+            #    if pieceOrNone != None:
+            #        colorizeBlock(window, pieceOrNone, colorPossible, board)
+            #    else:
+            #        continue
+            #else:
+            #    if pieceOrNone == board.focusedPiece:
+            #        drawBoard(window, board)
+            #        board.focusedPiece = None
+            #        continue
+            #    else:
+            #        if pieceOrNone != None:
+            #            if (x,y) in board.focusedPiece.getPossibleMoves():
+            #                board.movePiece(board.focusedPiece, (x,y))
+            #                drawBoard(window, board)
+            #                board.focusedPiece = None
+            #                continue
+            #            else:
+            #                continue
+
+
+            #Wenn auf dem Feld ein Spieler steht, dann wird dieser fokusiert
+
+            if pieceOrNone == None and board.focusedPiece == None:
+                print("no piece focussed")
                 continue
 
-            #Wenn Figur fokussiert wird dann zeichnen
-            if piece != None:
-                colorizeBlock(window, piece, color, board)
+            if pieceOrNone != None:
+                if board.focusedPiece == pieceOrNone:
+                    #Fokus aufheben
+                    drawBoard(window, board)
+                    board.focusedPiece = None
+                else:
+                    focusPieceAndColor(window, pieceOrNone, colorPossible, board)
+                continue
             #elif (x,y) in board.focusedPiece.getPossibleMoves():
             #    board.movePiece(board.focusedPiece, (x, y))
             #    drawBoard(window, board)
             #    pygame.display.update()
             #    continue
-
-            else:
-                board.movePiece(board.focusedPiece, (x, y))
-                drawBoard(window, board)
-                pygame.display.update()
-                continue
+            
+            else:#Wenn auf dem Feld kein Spieler steht, dann wird der bewegt und der Fokus aufgehoben
+                if board.movePiece(board.focusedPiece, (x, y)):
+                    drawBoard(window, board)
+                    pygame.display.update()
+                    continue
