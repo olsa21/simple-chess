@@ -42,7 +42,7 @@ class ChessPiece:
             if x<0 or x>=blocks or y<0 or y>=blocks:
                 continue
 
-            print("INDEX x: ", x, "y: ", y)
+            #print("INDEX x: ", x, "y: ", y)
 
     	    #Darf sich an ein Feld bewegen, wenn es frei ist (None) oder wenn dort eine Figur mit anderer Farbe ist
             if board.boardArray[x][y] == None or board.boardArray[x][y].color != self.color:
@@ -121,6 +121,7 @@ class Board:
     blackPieces: list
     boardArray = [[None for x in range(blocks+1)] for y in range(blocks+1)]
     focusedPiece: ChessPiece = None
+    isBlackTurn = True
 
     def __init__(self, whitePieces, blackPieces):
         self.whitePieces = whitePieces
@@ -154,8 +155,9 @@ class Board:
             self.boardArray[newPosition[0]][newPosition[1]] = piece
             piece.position = newPosition
 
-        #Fokus aufheben
+        #Fokus aufheben, wenn erfolgreich bewegt wurde
         self.focusedPiece = None
+        board.isBlackTurn = not board.isBlackTurn
         return True
 
     def getPiece(self, x, y):
@@ -205,7 +207,7 @@ class Board:
 
         print(possibleMoves)
         for tupel in possibleMoves:
-            print(f"{tupel[0]}, {tupel[1]}")
+            #print(f"{tupel[0]}, {tupel[1]}")
             pygame.draw.rect(window, color, (tupel[0]*blockWidth, tupel[1]*blockWidth, blockWidth, blockWidth))
 
             #Wenn Figur auf dem Feld ist, dann zeichnen
@@ -281,16 +283,21 @@ while running:
             running = False
 
         if event.type == pygame.MOUSEBUTTONDOWN:
+            if board.isBlackTurn:
+                print("Black Turn")
+            else:
+                print("White Turn")
+
             pos = pygame.mouse.get_pos()
-            print(pos)
+            #print(pos)
 
             #Geklickte Position ermitteln
             x = pos[0] // (screenWidth // blocks)
             y = pos[1] // (screenWidth // blocks)
-            print("x: ", x, " y: ", y)
+            #print("x: ", x, " y: ", y)
 
             pieceOrNone = board.getPiece(x, y)
-            print(pieceOrNone)
+            #print(pieceOrNone)
 
             #Wenn keiner den Fokus hat und Wenn auf dem Feld kein Spieler steht
             if pieceOrNone == None and board.focusedPiece == None:
@@ -298,10 +305,12 @@ while running:
                 continue
 
             #Wenn keine Figur den Fokus hat, fokussieren
-            if board.focusedPiece == None:
-                if pieceOrNone != None:
+            if board.focusedPiece == None and pieceOrNone != None:
+                #Prüfen ob die ausgewählte Farbe am Zug ist
+                #if pieceOrNone.color == board.isBlackTurn ? "black" : "white":
+                if pieceOrNone.color == "black" if board.isBlackTurn else pieceOrNone.color == "white":
                     board.focusPieceAndColor(window, pieceOrNone, colorPossible, board)
-                    continue
+                continue
 
             #Wenn auf dem Feld eine Figur steht
             if pieceOrNone != None:
