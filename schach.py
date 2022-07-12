@@ -6,8 +6,15 @@ from tkinter import messagebox
 
 blocks = 8
 screenWidth = 800
-blockSize = screenWidth // blocks
+blockSize = screenWidth / blocks
 colorPossible = (154,225,255)
+
+def placeText(text, x, y, color, size):
+    pygame.font.init()
+    font = pygame.font.SysFont("comicsans", size)
+    text = font.render(text, 1, color)
+    window.blit(text, (x, y))
+    pygame.display.update()
 
 class ChessPiece:
     name: str
@@ -156,7 +163,7 @@ class Board:
 
     #evtl Board Klasse hinzufügen
     def drawBoard(self, window, board):
-        blockWidth = screenWidth // 8
+        blockWidth = blockSize
         BLACK=(205, 133, 63)
         WHITE=(245,222,179)
 
@@ -251,13 +258,18 @@ BlackPieceList = [KingBlack, QueenBlack, RookBlack1, RookBlack2, BishopBlack1, B
 WhitePieceList = [KingWhite, QueenWhite, RookWhite1, RookWhite2, BishopWhite1, BishopWhite2, KnightWhite1, KnightWhite2, PawnWhite1, PawnWhite2, PawnWhite3, PawnWhite4, PawnWhite5, PawnWhite6, PawnWhite7, PawnWhite8]
 
 window = pygame.display.set_mode((screenWidth, screenWidth))
-pygame.display.set_caption("Schach")
+
+pygame.display.set_caption("Python Chess")
+
 
 
 board = Board(WhitePieceList, BlackPieceList)
 
 board.drawBoard(window, board)
+
 pygame.display.update()
+
+#placeText("Starte Spiel", 0,0,(0,0,255), 50)
 
 
 
@@ -303,8 +315,8 @@ while running:
                         board.focusPieceAndColor(window, pieceOrNone, colorPossible, board)
                     else:
                         #bewegen
-                        board.movePiece(board.focusedPiece, (x,y))
-                        board.drawBoard(window, board)
+                        if board.movePiece(board.focusedPiece, (x,y)):
+                            board.drawBoard(window, board)
                         pygame.display.update()
                 continue            
             else:#Wenn auf dem Feld kein Spieler steht, dann wird der bewegt und der Fokus aufgehoben
