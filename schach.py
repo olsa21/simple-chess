@@ -154,59 +154,59 @@ class Board:
     def getPiece(self, x, y):
         return self.boardArray[x][y]
 
-#evtl Board Klasse hinzufügen
-def drawBoard(window, board):
-    blockWidth = screenWidth // 8
-    BLACK=(205, 133, 63)
-    WHITE=(245,222,179)
+    #evtl Board Klasse hinzufügen
+    def drawBoard(self, window, board):
+        blockWidth = screenWidth // 8
+        BLACK=(205, 133, 63)
+        WHITE=(245,222,179)
 
-    isBlack = False
+        isBlack = False
 
-    for i in range(8):
-        for j in range(8):
-            if isBlack:
-                pygame.draw.rect(window, BLACK, (i*blockWidth, j*blockWidth, blockWidth, blockWidth))
-            else:
-                pygame.draw.rect(window, WHITE, (i*blockWidth, j*blockWidth, blockWidth, blockWidth))
+        for i in range(8):
+            for j in range(8):
+                if isBlack:
+                    pygame.draw.rect(window, BLACK, (i*blockWidth, j*blockWidth, blockWidth, blockWidth))
+                else:
+                    pygame.draw.rect(window, WHITE, (i*blockWidth, j*blockWidth, blockWidth, blockWidth))
+                isBlack = not isBlack
             isBlack = not isBlack
-        isBlack = not isBlack
 
-    #Jede Figur im Array wird angezeigt
-    for i in range(8):
-        for j in range(8):
-            if board.boardArray[i][j] != None:
-                board.boardArray[i][j].drawPiece(window)
+        #Jede Figur im Array wird angezeigt
+        for i in range(8):
+            for j in range(8):
+                if board.boardArray[i][j] != None:
+                    board.boardArray[i][j].drawPiece(window)
 
-    pygame.display.update()
+        pygame.display.update()
 
-#evtl Board Klasse hinzufügen
-def focusPieceAndColor(window, piece, color, board):
-    drawBoard(window, board)
+    #evtl Board Klasse hinzufügen
+    def focusPieceAndColor(self, window, piece, color, board):
+        self.drawBoard(window, board)
 
-    board.focusedPiece = piece
+        board.focusedPiece = piece
 
-    blockWidth = screenWidth // 8
-    x= (8-1)*blockWidth
+        blockWidth = screenWidth // 8
+        x= (8-1)*blockWidth
 
-    possibleMoves = piece.getPossibleMoves()
+        possibleMoves = piece.getPossibleMoves()
 
-    #draw positon of the piece
-    print("drawing piece at: ", piece.position)
-    pygame.draw.rect(window, (255,0,0), (piece.position[0]*blockWidth, piece.position[1]*blockWidth, blockWidth, blockWidth))
-    piece.drawPiece(window)
-    pygame.display.update()
+        #draw positon of the piece
+        print("drawing piece at: ", piece.position)
+        pygame.draw.rect(window, (255,0,0), (piece.position[0]*blockWidth, piece.position[1]*blockWidth, blockWidth, blockWidth))
+        piece.drawPiece(window)
+        pygame.display.update()
 
-    print(possibleMoves)
-    for tupel in possibleMoves:
-        print(f"{tupel[0]}, {tupel[1]}")
-        pygame.draw.rect(window, color, (tupel[0]*blockWidth, tupel[1]*blockWidth, blockWidth, blockWidth))
+        print(possibleMoves)
+        for tupel in possibleMoves:
+            print(f"{tupel[0]}, {tupel[1]}")
+            pygame.draw.rect(window, color, (tupel[0]*blockWidth, tupel[1]*blockWidth, blockWidth, blockWidth))
 
-        #Wenn Figur auf dem Feld ist, dann zeichnen
-        if board.boardArray[tupel[0]][tupel[1]] != None:
-            board.boardArray[tupel[0]][tupel[1]].drawPiece(window)
+            #Wenn Figur auf dem Feld ist, dann zeichnen
+            if board.boardArray[tupel[0]][tupel[1]] != None:
+                board.boardArray[tupel[0]][tupel[1]].drawPiece(window)
 
-    #pygame.draw.rect(window, color, (col*blockWidth, row*blockWidth, blockWidth, blockWidth))
-    pygame.display.update()
+        #pygame.draw.rect(window, color, (col*blockWidth, row*blockWidth, blockWidth, blockWidth))
+        pygame.display.update()
 
 
 
@@ -256,7 +256,7 @@ pygame.display.set_caption("Schach")
 
 board = Board(WhitePieceList, BlackPieceList)
 
-drawBoard(window, board)
+board.drawBoard(window, board)
 pygame.display.update()
 
 
@@ -288,27 +288,27 @@ while running:
             #Wenn keine Figur den Fokus hat, fokussieren
             if board.focusedPiece == None:
                 if pieceOrNone != None:
-                    focusPieceAndColor(window, pieceOrNone, colorPossible, board)
+                    board.focusPieceAndColor(window, pieceOrNone, colorPossible, board)
                     continue
 
             #Wenn auf dem Feld eine Figur steht
             if pieceOrNone != None:
                 #Wenn dieselbe Figur gewählt wird, der bereits den Fokus hat, dann Fokus entfernen
                 if board.focusedPiece == pieceOrNone:
-                    drawBoard(window, board)
+                    board.drawBoard(window, board)
                     board.focusedPiece = None
                 else:
                     #Auf dem Feld steht eine Figur derselben Farbe, Fokus wird gewechselt
                     if board.focusedPiece.color == board.getPiece(x, y).color:
-                        focusPieceAndColor(window, pieceOrNone, colorPossible, board)
+                        board.focusPieceAndColor(window, pieceOrNone, colorPossible, board)
                     else:
                         #bewegen
                         board.movePiece(board.focusedPiece, (x,y))
-                        drawBoard(window, board)
+                        board.drawBoard(window, board)
                         pygame.display.update()
                 continue            
             else:#Wenn auf dem Feld kein Spieler steht, dann wird der bewegt und der Fokus aufgehoben
                 if board.movePiece(board.focusedPiece, (x, y)):
-                    drawBoard(window, board)
+                    board.drawBoard(window, board)
                     pygame.display.update()
                     continue
