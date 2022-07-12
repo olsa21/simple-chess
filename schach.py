@@ -29,8 +29,16 @@ class ChessPiece:
         #add the new tuple to the list
         #if the tuple is not occupied
 
+            x=self.position[0]+i[0]
+            y=self.position[1]+i[1]
+
+            if x<0 or x>=blocks or y<0 or y>=blocks:
+                continue
+
+            print("INDEX x: ", x, "y: ", y)
+
     	    #Darf sich an ein Feld bewegen, wenn es frei ist (None) oder wenn dort eine Figur mit anderer Farbe ist
-            if board.boardArray[self.position[0]+i[0]][self.position[1]+i[1]] == None or board.boardArray[self.position[0]+i[0]][self.position[1]+i[1]].color != self.color:
+            if board.boardArray[x][y] == None or board.boardArray[x][y].color != self.color:
                 blockToDrawList.append((self.position[0]+i[0], self.position[1]+i[1]))
             
             #alle Möglichkeiten ausgeben
