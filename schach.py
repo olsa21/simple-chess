@@ -5,7 +5,8 @@ import tkinter as tk
 from tkinter import messagebox
 
 blocks = 8
-screenWidth = 400
+screenWidth = 800
+blockSize = screenWidth // blocks
 
 class Board:
     boardArray = [[None for x in range(blocks+1)] for y in range(blocks+1)] 
@@ -15,12 +16,22 @@ class Board:
             #print("i[0]=" + str(i[0]) + " i[1]=" + str(i[1]))
             xPosition = i.position[0]
             yPosition = i.position[1]
-            self.boardArray[xPosition][yPosition] = 1
+            self.boardArray[xPosition][yPosition] = i
 
         for i in blackPieces:
             xPosition = i.position[0]
             yPosition = i.position[1]
-            self.boardArray[xPosition][yPosition] = 1
+            self.boardArray[xPosition][yPosition] = i
+
+    def movePiece(self, piece, newPosition):
+        xPosition = piece.position[0]
+        yPosition = piece.position[1]
+        self.boardArray[xPosition][yPosition] = None
+        self.boardArray[newPosition[0]][newPosition[1]] = 1
+        piece.position = newPosition
+
+    def getPiece(self, x, y):
+        return self.boardArray[x][y]
 
 class ChessPiece:
     name: str
@@ -31,7 +42,7 @@ class ChessPiece:
     jumpingArea: list
 
     directory = "./assets/"
-    imageFile: str
+    image: pygame.Surface
 
 class King(ChessPiece):
     def __init__(self, position, color):
@@ -39,7 +50,9 @@ class King(ChessPiece):
         self.position = position
         self.color = color
         self.jumpingArea = [(1,1),(1,-1),(-1,1),(-1,-1),(1,0),(-1,0),(0,1),(0,-1)]
-        self.imageFile = self.directory + "king_" + color + ".svg"
+        
+        img = pygame.image.load(self.directory + "king_" + color + ".png")
+        self.image = pygame.transform.scale(img, (blockSize, blockSize))
 
 class Queen(ChessPiece):
     def __init__(self, position, color):
@@ -47,7 +60,9 @@ class Queen(ChessPiece):
         self.position = position
         self.color = color
         self.jumpingArea = [(1,1),(1,-1),(-1,1),(-1,-1),(1,0),(-1,0),(0,1),(0,-1)]
-        self.imageFile = self.directory + "queen_" + color + ".svg"
+
+        img = pygame.image.load(self.directory + "queen_" + color + ".png")
+        self.image = pygame.transform.scale(img, (blockSize, blockSize))
 
 class Rook(ChessPiece):
     def __init__(self, position, color):
@@ -55,7 +70,9 @@ class Rook(ChessPiece):
         self.position = position
         self.color = color
         self.jumpingArea = [(1,0),(-1,0),(0,1),(0,-1)]
-        self.imageFile = self.directory + "rook_" + color + ".svg"
+
+        img = pygame.image.load(self.directory + "rook_" + color + ".png")
+        self.image = pygame.transform.scale(img, (blockSize, blockSize))
 
 class Bishop(ChessPiece):
     def __init__(self, position, color):
@@ -63,7 +80,9 @@ class Bishop(ChessPiece):
         self.position = position
         self.color = color
         self.jumpingArea = [(1,1),(1,-1),(-1,1),(-1,-1)]
-        self.imageFile = self.directory + "bishop_" + color + ".svg"
+
+        img = pygame.image.load(self.directory + "bishop_" + color + ".png")
+        self.image = pygame.transform.scale(img, (blockSize, blockSize))
 
 class Knight(ChessPiece):
     def __init__(self, position, color):
@@ -71,7 +90,9 @@ class Knight(ChessPiece):
         self.position = position
         self.color = color
         self.jumpingArea = [(1,2),(1,-2),(-1,2),(-1,-2),(2,1),(2,-1),(-2,1),(-2,-1)]
-        self.imageFile = self.directory + "knight_" + color + ".svg"
+
+        img = pygame.image.load(self.directory + "knight_" + color + ".png")
+        self.image = pygame.transform.scale(img, (blockSize, blockSize))
 
 class Pawn(ChessPiece):
     def __init__(self, position, color):
@@ -79,7 +100,9 @@ class Pawn(ChessPiece):
         self.position = position
         self.color = color
         self.jumpingArea = [(1,1),(1,-1),(-1,1),(-1,-1)]
-        self.imageFile = self.directory + "pawn_" + color + ".svg"
+
+        img = pygame.image.load(self.directory + "pawn_" + color + ".png")
+        self.image = pygame.transform.scale(img, (blockSize, blockSize))
 
 
 def drawBoard(window):
@@ -180,14 +203,47 @@ PawnWhite6 = Pawn((5,6), "white")
 PawnWhite7 = Pawn((6,6), "white")
 PawnWhite8 = Pawn((7,6), "white")
 
+#image = pygame.image.load("./assets/bishop_white.png")
 
+#image = pygame.image.load(KingBlack.imageFile)
+#window.blit(image, (KingBlack.position[0]*screenWidth//8, KingBlack.position[1]*screenWidth//8))
+
+#window.blit(KingBlack.image, (KingBlack.position[0]*blockSize, KingBlack.position[1]*blockSize))
 
 WhitePieceList = [KingWhite, QueenWhite, RookWhite1, RookWhite2, BishopWhite1, BishopWhite2, KnightWhite1, KnightWhite2, PawnWhite1, PawnWhite2, PawnWhite3, PawnWhite4, PawnWhite5, PawnWhite6, PawnWhite7, PawnWhite8]
+
+for i in WhitePieceList:
+    window.blit(i.image, (i.position[0]*blockSize, i.position[1]*blockSize))
+
+for i in BlackPieceList:
+    window.blit(i.image, (i.position[0]*blockSize, i.position[1]*blockSize))
 
 board = Board(WhitePieceList, BlackPieceList)
 
 color = (154,225,255)
-colorizeBlock(window, KnightWhite2, color, board)
+#colorizeBlock(window, KnightWhite2, color, board)
 
 
 pygame.time.delay(1000)
+
+running = True
+while running:
+    pygame.time.delay(50)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            pos = pygame.mouse.get_pos()
+            print(pos)
+
+            #Geklickte Position ermitteln
+            x = pos[0] // (screenWidth // blocks)
+            y = pos[1] // (screenWidth // blocks)
+            print("x: ", x, " y: ", y)
+
+            piece = board.getPiece(x, y)
+            print(piece)
+
+            if piece != None:
+                colorizeBlock(window, piece, color, board)
