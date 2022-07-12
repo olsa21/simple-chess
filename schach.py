@@ -8,31 +8,6 @@ blocks = 8
 screenWidth = 800
 blockSize = screenWidth // blocks
 
-class Board:
-    boardArray = [[None for x in range(blocks+1)] for y in range(blocks+1)] 
-
-    def __init__(self, whitePieces, blackPieces):
-        for i in whitePieces:
-            #print("i[0]=" + str(i[0]) + " i[1]=" + str(i[1]))
-            xPosition = i.position[0]
-            yPosition = i.position[1]
-            self.boardArray[xPosition][yPosition] = i
-
-        for i in blackPieces:
-            xPosition = i.position[0]
-            yPosition = i.position[1]
-            self.boardArray[xPosition][yPosition] = i
-
-    def movePiece(self, piece, newPosition):
-        xPosition = piece.position[0]
-        yPosition = piece.position[1]
-        self.boardArray[xPosition][yPosition] = None
-        self.boardArray[newPosition[0]][newPosition[1]] = 1
-        piece.position = newPosition
-
-    def getPiece(self, x, y):
-        return self.boardArray[x][y]
-
 class ChessPiece:
     name: str
     position: tuple
@@ -43,6 +18,25 @@ class ChessPiece:
 
     directory = "./assets/"
     image: pygame.Surface
+
+    def drawPiece(self, window):
+        window.blit(self.image, (self.position[0]*blockSize, self.position[1]*blockSize))
+
+    def getPossibleMoves(self):
+        blockToDrawList = list()
+        for i in self.jumpingArea:
+        #add the new tuple to the list
+        #if the tuple is not occupied
+
+    	    #Darf sich an ein Feld bewegen, wenn es frei ist (None) oder wenn dort eine Figur mit anderer Farbe ist
+            if board.boardArray[piece.position[0]+i[0]][piece.position[1]+i[1]] == None or board.boardArray[piece.position[0]+i[0]][piece.position[1]+i[1]].color != piece.color:
+                blockToDrawList.append((piece.position[0]+i[0], piece.position[1]+i[1]))
+            
+            #alle Möglichkeiten ausgeben
+            #blockToDrawList.append((piece.position[0] + i[0], piece.position[1] + i[1]))
+
+        return blockToDrawList
+
 
 class King(ChessPiece):
     def __init__(self, position, color):
@@ -95,6 +89,8 @@ class Knight(ChessPiece):
         self.image = pygame.transform.scale(img, (blockSize, blockSize))
 
 class Pawn(ChessPiece):
+    isFirstMove = True
+
     def __init__(self, position, color):
         self.name = "Pawn"
         self.position = position
@@ -104,8 +100,48 @@ class Pawn(ChessPiece):
         img = pygame.image.load(self.directory + "pawn_" + color + ".png")
         self.image = pygame.transform.scale(img, (blockSize, blockSize))
 
+class Board:
+    whitePieces: list
+    blackPieces: list
+    boardArray = [[None for x in range(blocks+1)] for y in range(blocks+1)]
+    focusedPiece: ChessPiece = None
 
-def drawBoard(window):
+    def __init__(self, whitePieces, blackPieces):
+        self.whitePieces = whitePieces
+        self.blackPieces = blackPieces
+
+        for i in whitePieces:
+            #print("i[0]=" + str(i[0]) + " i[1]=" + str(i[1]))
+            xPosition = i.position[0]
+            yPosition = i.position[1]
+            self.boardArray[xPosition][yPosition] = i
+
+        for i in blackPieces:
+            xPosition = i.position[0]
+            yPosition = i.position[1]
+            self.boardArray[xPosition][yPosition] = i
+
+    def movePiece(self, piece, newPosition):
+        #Alte Position freigeben
+        self.boardArray[piece.position[0]][piece.position[1]] = None
+
+        #Prüfen ob neues Feld belegt ist
+        if self.boardArray[newPosition[0]][newPosition[1]] != None and self.boardArray[newPosition[0]][newPosition[1]].color == piece.color:
+            print("Feld belegt")
+        else:
+            #Neue Position belegen
+            piece.position = newPosition
+            self.boardArray[newPosition[0]][newPosition[1]] = piece
+            piece.position = newPosition
+
+        #Fokus aufheben
+        self.focusedPiece = None
+
+    def getPiece(self, x, y):
+        return self.boardArray[x][y]
+
+#evtl Board Klasse hinzufügen
+def drawBoard(window, board):
     blockWidth = screenWidth // 8
     BLACK=(205, 133, 63)
     WHITE=(245,222,179)
@@ -121,46 +157,47 @@ def drawBoard(window):
             isBlack = not isBlack
         isBlack = not isBlack
 
+    for i in board.whitePieces:
+        i.drawPiece(window)
+
+    for i in board.blackPieces:
+        i.drawPiece(window)
     #pygame.draw.rect(window,BLUE,(0,0,50,50))
     #pygame.draw.rect(window,WHITE,(0,50,50,50))
     pygame.display.update()
 
+#evtl Board Klasse hinzufügen
 def colorizeBlock(window, piece, color, board):
+    drawBoard(window, board)
+
+    board.focusedPiece = piece
+
     blockWidth = screenWidth // 8
     x= (8-1)*blockWidth
 
-    blockToDrawList = list()
-
-    #for every tuple in the jumping area
-    for i in piece.jumpingArea:
-        #add the new tuple to the list
-        #if the tuple is not occupied
-        print()
-
-
-
-        #if board.boardArray[piece.position[0]+i[0]][piece.position[1]+i[1]] == None:
-        #    blockToDrawList.append((piece.position[0]+i[0], piece.position[1]+i[1]))
-        blockToDrawList.append((piece.position[0] + i[0], piece.position[1] + i[1]))
+    possibleMoves = piece.getPossibleMoves()
 
     #draw positon of the piece
     print("drawing piece at: ", piece.position)
     pygame.draw.rect(window, (255,0,0), (piece.position[0]*blockWidth, piece.position[1]*blockWidth, blockWidth, blockWidth))
+    piece.drawPiece(window)
     pygame.display.update()
 
-    print(blockToDrawList)
-    for tupel in blockToDrawList:
+    print(possibleMoves)
+    for tupel in possibleMoves:
         print(f"{tupel[0]}, {tupel[1]}")
         pygame.draw.rect(window, color, (tupel[0]*blockWidth, tupel[1]*blockWidth, blockWidth, blockWidth))
+
+        #Wenn Figur auf dem Feld ist, dann zeichnen
+        if board.boardArray[tupel[0]][tupel[1]] != None:
+            board.boardArray[tupel[0]][tupel[1]].drawPiece(window)
 
     #pygame.draw.rect(window, color, (col*blockWidth, row*blockWidth, blockWidth, blockWidth))
     pygame.display.update()
 
 window = pygame.display.set_mode((screenWidth, screenWidth))
 
-drawBoard(window)
 
-pygame.time.delay(1000)
 
 #tupelList = [(0,0), (1,1), (2,2), (3,3), (4,4), (5,5), (6,6), (7,7)]
 
@@ -212,19 +249,20 @@ PawnWhite8 = Pawn((7,6), "white")
 
 WhitePieceList = [KingWhite, QueenWhite, RookWhite1, RookWhite2, BishopWhite1, BishopWhite2, KnightWhite1, KnightWhite2, PawnWhite1, PawnWhite2, PawnWhite3, PawnWhite4, PawnWhite5, PawnWhite6, PawnWhite7, PawnWhite8]
 
-for i in WhitePieceList:
-    window.blit(i.image, (i.position[0]*blockSize, i.position[1]*blockSize))
 
-for i in BlackPieceList:
-    window.blit(i.image, (i.position[0]*blockSize, i.position[1]*blockSize))
 
 board = Board(WhitePieceList, BlackPieceList)
+
+drawBoard(window, board)
+pygame.display.update()
 
 color = (154,225,255)
 #colorizeBlock(window, KnightWhite2, color, board)
 
 
 pygame.time.delay(1000)
+
+#board.movePiece(KnightWhite2, (3,3))
 
 running = True
 while running:
@@ -245,5 +283,24 @@ while running:
             piece = board.getPiece(x, y)
             print(piece)
 
+            #Wenn bereits Fokussiert ist, dann wird die Fokussierung aufgehoben
+            if piece == board.focusedPiece:
+                board.focusedPiece = None
+                drawBoard(window, board)
+                pygame.display.update()
+                continue
+
+            #Wenn Figur fokussiert wird dann zeichnen
             if piece != None:
                 colorizeBlock(window, piece, color, board)
+            #elif (x,y) in board.focusedPiece.getPossibleMoves():
+            #    board.movePiece(board.focusedPiece, (x, y))
+            #    drawBoard(window, board)
+            #    pygame.display.update()
+            #    continue
+
+            else:
+                board.movePiece(board.focusedPiece, (x, y))
+                drawBoard(window, board)
+                pygame.display.update()
+                continue
