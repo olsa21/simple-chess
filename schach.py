@@ -2,6 +2,7 @@ import math
 import random
 import pygame
 import tkinter as tk
+import numpy as np
 from tkinter import messagebox
 
 blocks = 8
@@ -34,27 +35,76 @@ class ChessPiece:
         window.blit(self.image, (self.position[0]*blockSize  + padding, self.position[1]*blockSize + padding))
 
     def getPossibleMoves(self):
-        blockToDrawList = list()
+        possibleFields = list()
+
+        #print(np.matrix(board.boardArray))
+        nextFree=True
+        
         for i in self.jumpingArea:
         #add the new tuple to the list
         #if the tuple is not occupied
 
-            x=self.position[0]+i[0]
-            y=self.position[1]+i[1]
+            xPosition = self.position[0]
+            yPosition = self.position[1]
 
-            if x<0 or x>=blocks or y<0 or y>=blocks:
+            xZiel=xPosition+i[0]
+            yZiel=yPosition+i[1]
+
+            if xZiel<0 or xZiel>=blocks or yZiel<0 or yZiel>=blocks:
                 continue
+            
+            #Spezielle Regeln für die Bauern
+            if self.name == "Pawn":
+                valid = True
+                #Dürfen nicht zurückgehen
+                if self.color == "white" and i[1]>0 or self.color == "black" and i[1]<0:
+                    valid = False
+                    continue
 
+                #1. Prüfe Diagonale Felder
+                if i in [(-1,1),(-1,-1),(1,1),(1,-1)]:
+                    if board.boardArray[xZiel][yZiel] == None:
+                        print("Diagonale xZiel: " + str(xZiel) + " yZiel: " + str(yZiel))
+                        if self.color == "white" and board.boardArray[xZiel][yZiel+1] != None and board.boardArray[xZiel][yZiel+1].color == "black":
+                            print("xziel: " + str(xZiel) + " yziel: " + str(yZiel))
+                            possibleFields.append((xZiel,yZiel))
+                        if self.color == "black" and board.boardArray[xZiel][yZiel-1] != None and board.boardArray[xZiel][yZiel-1].color == "white":
+                            print("xziel: " + str(xZiel) + " yziel: " + str(yZiel))
+                            possibleFields.append((xZiel,yZiel))
+                        valid = False
+                
+                #2. Prüfe Vorwärts Felder
+                else:#i muss in [(0,1),(0,2),(0,-1),(0,-2)] sein
+                    if i in [(0,1),(0,-1)]:
+                        if self.color == "white":
+                            if board.boardArray[xPosition][yPosition -1] != None:
+                                valid = False
+                                nextFree=False
+                        elif self.color == "black":
+                            if board.boardArray[xPosition][yPosition +1] != None:
+                                valid = False
+                                nextFree=False
+                    
+                    if i in [(0,2),(0,-2)]:
+                        if not self.isFirstMove or not nextFree:
+                            valid = False
+
+                if not valid:
+                    continue
+
+                #TODO letzte Reihe prüfen -> Dame
+                        
+                
             #print("INDEX x: ", x, "y: ", y)
 
     	    #Darf sich an ein Feld bewegen, wenn es frei ist (None) oder wenn dort eine Figur mit anderer Farbe ist
-            if board.boardArray[x][y] == None or board.boardArray[x][y].color != self.color:
-                blockToDrawList.append((self.position[0]+i[0], self.position[1]+i[1]))
+            if board.boardArray[xZiel][yZiel] == None or board.boardArray[xZiel][yZiel].color != self.color:
+                possibleFields.append((xZiel, yZiel))
             
             #alle Möglichkeiten ausgeben
             #blockToDrawList.append((piece.position[0] + i[0], piece.position[1] + i[1]))
 
-        return blockToDrawList
+        return possibleFields
 
 
 class King(ChessPiece):
@@ -114,7 +164,7 @@ class Pawn(ChessPiece):
         self.name = "Pawn"
         self.position = position
         self.color = color
-        self.jumpingArea = [(1,1),(1,-1),(-1,1),(-1,-1)]
+        self.jumpingArea = [(1,1),(1,-1),(-1,1),(-1,-1), (0,1), (0,-1), (0,2),  (0,-2)]
 
         img = pygame.image.load(self.directory + "pawn_" + color + ".png")
         self.image = pygame.transform.scale(img, (blockSize, blockSize))
@@ -157,10 +207,19 @@ class Board:
             piece.position = newPosition
             self.boardArray[newPosition[0]][newPosition[1]] = piece
             piece.position = newPosition
+            #en passant prüfen
+            if piece.name == "Pawn":
+                if piece.color == "white" and board.boardArray[newPosition[0]][newPosition[1]+1] != None and board.boardArray[newPosition[0]][newPosition[1]+1].color == "black":
+                    self.boardArray[newPosition[0]][newPosition[1]+1] = None
+                if piece.color == "black" and board.boardArray[newPosition[0]][newPosition[1]-1] != None and board.boardArray[newPosition[0]][newPosition[1]-1].color == "white":
+                    self.boardArray[newPosition[0]][newPosition[1]-1] = None
+                
 
         #Fokus aufheben, wenn erfolgreich bewegt wurde
         self.focusedPiece = None
         board.isBlackTurn = not board.isBlackTurn
+        if piece.name == "Pawn":
+            piece.isFirstMove = False
         return True
 
     def getPiece(self, x, y):
