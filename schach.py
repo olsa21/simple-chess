@@ -27,6 +27,7 @@ class ChessPiece:
 
     #liste mit Tupel relativ zur aktuellen Position 0
     jumpingArea: list
+    endlessDirection: bool
 
     directory = "./assets/"
     image: pygame.Surface
@@ -53,6 +54,25 @@ class ChessPiece:
             if xZiel<0 or xZiel>=blocks or yZiel<0 or yZiel>=blocks:
                 continue
             
+            if self.endlessDirection:
+                counter = 1
+                while True:
+                    #Wenn das Feld nicht leer ist
+                    if board.boardArray[xPosition+counter*i[0]][yPosition+counter*i[1]] != None:
+                        #Wenn auf dem Feld ein anderer Spieler ist füge nich hinzu
+                        if  board.boardArray[xPosition+counter*i[0]][yPosition+counter*i[1]].color != self.color:
+                            possibleFields.append((xPosition+counter*i[0],yPosition+counter*i[1]))
+                        break
+                    else:
+                        #Wenn es leer ist füge das Feld hinzu
+                        possibleFields.append((xPosition+counter*i[0],yPosition+counter*i[1]))
+                        counter += 1
+
+                    #Nur gültige Feldindizes verwenden, bei Überlauf abbrechen
+                    if xPosition+counter*i[0] >7 or xPosition+counter*i[0] <0 or yPosition+counter*i[1] >7 or yPosition+counter*i[1] <0:
+                        break
+                    
+
             #Spezielle Regeln für die Bauern
             if self.name == "Pawn":
                 valid = True
@@ -91,9 +111,6 @@ class ChessPiece:
 
                 if not valid:
                     continue
-
-                #TODO letzte Reihe prüfen -> Dame
-                        
                 
             #print("INDEX x: ", x, "y: ", y)
 
@@ -108,6 +125,7 @@ class ChessPiece:
 
 
 class King(ChessPiece):
+    endlessDirection = False
     def __init__(self, position, color):
         self.name = "King"
         self.position = position
@@ -118,6 +136,7 @@ class King(ChessPiece):
         self.image = pygame.transform.scale(img, (blockSize, blockSize))
 
 class Queen(ChessPiece):
+    endlessDirection = True
     def __init__(self, position, color):
         self.name = "Queen"
         self.position = position
@@ -128,6 +147,7 @@ class Queen(ChessPiece):
         self.image = pygame.transform.scale(img, (blockSize, blockSize))
 
 class Rook(ChessPiece):
+    endlessDirection = True
     def __init__(self, position, color):
         self.name = "Rook"
         self.position = position
@@ -138,6 +158,7 @@ class Rook(ChessPiece):
         self.image = pygame.transform.scale(img, (blockSize, blockSize))
 
 class Bishop(ChessPiece):
+    endlessDirection = True
     def __init__(self, position, color):
         self.name = "Bishop"
         self.position = position
@@ -148,6 +169,7 @@ class Bishop(ChessPiece):
         self.image = pygame.transform.scale(img, (blockSize, blockSize))
 
 class Knight(ChessPiece):
+    endlessDirection = False
     def __init__(self, position, color):
         self.name = "Knight"
         self.position = position
@@ -159,6 +181,7 @@ class Knight(ChessPiece):
 
 class Pawn(ChessPiece):
     isFirstMove = True
+    endlessDirection = False
 
     def __init__(self, position, color):
         self.name = "Pawn"
@@ -322,6 +345,9 @@ PawnWhite8 = Pawn((7,6), "white")
 
 BlackPieceList = [KingBlack, QueenBlack, RookBlack1, RookBlack2, BishopBlack1, BishopBlack2, KnightBlack1, KnightBlack2, PawnBlack1, PawnBlack2, PawnBlack3, PawnBlack4, PawnBlack5, PawnBlack6, PawnBlack7, PawnBlack8]
 WhitePieceList = [KingWhite, QueenWhite, RookWhite1, RookWhite2, BishopWhite1, BishopWhite2, KnightWhite1, KnightWhite2, PawnWhite1, PawnWhite2, PawnWhite3, PawnWhite4, PawnWhite5, PawnWhite6, PawnWhite7, PawnWhite8]
+
+BlackPieceList = [KnightBlack1]
+
 
 window = pygame.display.set_mode((screenWidth, screenWidth))
 
