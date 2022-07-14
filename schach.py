@@ -35,6 +35,40 @@ class ChessPiece:
     def drawPiece(self, window):
         window.blit(self.image, (self.position[0]*blockSize  + padding, self.position[1]*blockSize + padding))
 
+    def movePiece(self, board, newPosition):
+        #Prüfen ob neues Feld erreichbar ist
+        if newPosition not in self.getPossibleMoves():
+            return False
+
+        #Alte Position freigeben
+        board.boardArray[self.position[0]][self.position[1]] = None
+
+        #Prüfen ob neues Feld belegt ist
+        if board.boardArray[newPosition[0]][newPosition[1]] != None and board.boardArray[newPosition[0]][newPosition[1]].color == self.color:
+            print("Feld belegt")
+        else:
+            #Neue Position belegen
+            self.position = newPosition
+            board.boardArray[newPosition[0]][newPosition[1]] = self
+            self.position = newPosition
+            #en passant prüfen
+            if self.name == "Pawn":
+                if self.color == "white" and board.boardArray[newPosition[0]][newPosition[1]+1] != None and board.boardArray[newPosition[0]][newPosition[1]+1].color == "black":
+                    board.boardArray[newPosition[0]][newPosition[1]+1] = None
+                if self.color == "black" and board.boardArray[newPosition[0]][newPosition[1]-1] != None and board.boardArray[newPosition[0]][newPosition[1]-1].color == "white":
+                    board.boardArray[newPosition[0]][newPosition[1]-1] = None
+                if newPosition[1] == 7 or newPosition[1] == 0:
+                    board.boardArray[newPosition[0]][newPosition[1]] = Queen(newPosition, self.color)
+
+                
+
+        #Fokus aufheben, wenn erfolgreich bewegt wurde
+        board.focusedPiece = None
+        board.isBlackTurn = not board.isBlackTurn
+        if self.name == "Pawn":
+            self.isFirstMove = False
+        return True
+
     def getPossibleMoves(self):
         possibleFields = list()
 
@@ -191,6 +225,7 @@ class Pawn(ChessPiece):
 
         img = pygame.image.load(self.directory + "pawn_" + color + ".png")
         self.image = pygame.transform.scale(img, (blockSize, blockSize))
+        
 
 class Board:
     whitePieces: list
@@ -214,39 +249,39 @@ class Board:
             yPosition = i.position[1]
             self.boardArray[xPosition][yPosition] = i
 
-    def movePiece(self, piece, newPosition):
-        #Prüfen ob neues Feld erreichbar ist
-        if newPosition not in piece.getPossibleMoves():
-            return False
-
-        #Alte Position freigeben
-        self.boardArray[piece.position[0]][piece.position[1]] = None
-
-        #Prüfen ob neues Feld belegt ist
-        if self.boardArray[newPosition[0]][newPosition[1]] != None and self.boardArray[newPosition[0]][newPosition[1]].color == piece.color:
-            print("Feld belegt")
-        else:
-            #Neue Position belegen
-            piece.position = newPosition
-            self.boardArray[newPosition[0]][newPosition[1]] = piece
-            piece.position = newPosition
-            #en passant prüfen
-            if piece.name == "Pawn":
-                if piece.color == "white" and board.boardArray[newPosition[0]][newPosition[1]+1] != None and board.boardArray[newPosition[0]][newPosition[1]+1].color == "black":
-                    self.boardArray[newPosition[0]][newPosition[1]+1] = None
-                if piece.color == "black" and board.boardArray[newPosition[0]][newPosition[1]-1] != None and board.boardArray[newPosition[0]][newPosition[1]-1].color == "white":
-                    self.boardArray[newPosition[0]][newPosition[1]-1] = None
-                if newPosition[1] == 7 or newPosition[1] == 0:
-                    self.boardArray[newPosition[0]][newPosition[1]] = Queen(newPosition, piece.color)
-
-                
-
-        #Fokus aufheben, wenn erfolgreich bewegt wurde
-        self.focusedPiece = None
-        board.isBlackTurn = not board.isBlackTurn
-        if piece.name == "Pawn":
-            piece.isFirstMove = False
-        return True
+    #def movePiece(self, piece, newPosition):
+    #    #Prüfen ob neues Feld erreichbar ist
+    #    if newPosition not in piece.getPossibleMoves():
+    #        return False
+#
+    #    #Alte Position freigeben
+    #    self.boardArray[piece.position[0]][piece.position[1]] = None
+#
+    #    #Prüfen ob neues Feld belegt ist
+    #    if self.boardArray[newPosition[0]][newPosition[1]] != None and self.boardArray[newPosition[0]][newPosition[1]].color == piece.color:
+    #        print("Feld belegt")
+    #    else:
+    #        #Neue Position belegen
+    #        piece.position = newPosition
+    #        self.boardArray[newPosition[0]][newPosition[1]] = piece
+    #        piece.position = newPosition
+    #        #en passant prüfen
+    #        if piece.name == "Pawn":
+    #            if piece.color == "white" and board.boardArray[newPosition[0]][newPosition[1]+1] != None and board.boardArray[newPosition[0]][newPosition[1]+1].color == "black":
+    #                self.boardArray[newPosition[0]][newPosition[1]+1] = None
+    #            if piece.color == "black" and board.boardArray[newPosition[0]][newPosition[1]-1] != None and board.boardArray[newPosition[0]][newPosition[1]-1].color == "white":
+    #                self.boardArray[newPosition[0]][newPosition[1]-1] = None
+    #            if newPosition[1] == 7 or newPosition[1] == 0:
+    #                self.boardArray[newPosition[0]][newPosition[1]] = Queen(newPosition, piece.color)
+#
+    #            
+#
+    #    #Fokus aufheben, wenn erfolgreich bewegt wurde
+    #    self.focusedPiece = None
+    #    board.isBlackTurn = not board.isBlackTurn
+    #    if piece.name == "Pawn":
+    #        piece.isFirstMove = False
+    #    return True
 
     def getPiece(self, x, y):
         return self.boardArray[x][y]
@@ -346,8 +381,6 @@ PawnWhite8 = Pawn((7,6), "white")
 BlackPieceList = [KingBlack, QueenBlack, RookBlack1, RookBlack2, BishopBlack1, BishopBlack2, KnightBlack1, KnightBlack2, PawnBlack1, PawnBlack2, PawnBlack3, PawnBlack4, PawnBlack5, PawnBlack6, PawnBlack7, PawnBlack8]
 WhitePieceList = [KingWhite, QueenWhite, RookWhite1, RookWhite2, BishopWhite1, BishopWhite2, KnightWhite1, KnightWhite2, PawnWhite1, PawnWhite2, PawnWhite3, PawnWhite4, PawnWhite5, PawnWhite6, PawnWhite7, PawnWhite8]
 
-BlackPieceList = [KnightBlack1]
-
 
 window = pygame.display.set_mode((screenWidth, screenWidth))
 
@@ -360,10 +393,6 @@ board = Board(WhitePieceList, BlackPieceList)
 board.drawBoard(window, board)
 
 pygame.display.update()
-
-#placeText("Starte Spiel", 0,0,(0,0,255), 50)
-
-
 
 running = True
 while running:
@@ -414,12 +443,12 @@ while running:
                         board.focusPieceAndColor(window, pieceOrNone, colorPossible, board)
                     else:
                         #bewegen
-                        if board.movePiece(board.focusedPiece, (x,y)):
+                        if board.focusedPiece.movePiece(board, (x,y)):
                             board.drawBoard(window, board)
                         pygame.display.update()
                 continue            
             else:#Wenn auf dem Feld kein Spieler steht, dann wird der bewegt und der Fokus aufgehoben
-                if board.movePiece(board.focusedPiece, (x, y)):
+                if  board.focusedPiece.movePiece(board, (x, y)):
                     board.drawBoard(window, board)
                     pygame.display.update()
                     continue
