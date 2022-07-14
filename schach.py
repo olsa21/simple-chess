@@ -213,6 +213,9 @@ class Board:
                     self.boardArray[newPosition[0]][newPosition[1]+1] = None
                 if piece.color == "black" and board.boardArray[newPosition[0]][newPosition[1]-1] != None and board.boardArray[newPosition[0]][newPosition[1]-1].color == "white":
                     self.boardArray[newPosition[0]][newPosition[1]-1] = None
+                if newPosition[1] == 7 or newPosition[1] == 0:
+                    self.boardArray[newPosition[0]][newPosition[1]] = Queen(newPosition, piece.color)
+
                 
 
         #Fokus aufheben, wenn erfolgreich bewegt wurde
