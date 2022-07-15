@@ -75,15 +75,15 @@ class ChessPiece:
         #print(np.matrix(board.boardArray))
         nextFree=True
         
-        for i in self.jumpingArea:
+        for tupel in self.jumpingArea:
         #add the new tuple to the list
         #if the tuple is not occupied
 
             xPosition = self.position[0]
             yPosition = self.position[1]
 
-            xZiel=xPosition+i[0]
-            yZiel=yPosition+i[1]
+            xZiel=xPosition+tupel[0]
+            yZiel=yPosition+tupel[1]
 
             if xZiel<0 or xZiel>=blocks or yZiel<0 or yZiel>=blocks:
                 continue
@@ -92,61 +92,44 @@ class ChessPiece:
                 counter = 1
                 while True:
                     #Wenn das Feld nicht leer ist
-                    if board.boardArray[xPosition+counter*i[0]][yPosition+counter*i[1]] != None:
+                    if board.boardArray[xPosition+counter*tupel[0]][yPosition+counter*tupel[1]] != None:
                         #Wenn auf dem Feld ein anderer Spieler ist füge nich hinzu
-                        if  board.boardArray[xPosition+counter*i[0]][yPosition+counter*i[1]].color != self.color:
-                            possibleFields.append((xPosition+counter*i[0],yPosition+counter*i[1]))
+                        if  board.boardArray[xPosition+counter*tupel[0]][yPosition+counter*tupel[1]].color != self.color:
+                            possibleFields.append((xPosition+counter*tupel[0],yPosition+counter*tupel[1]))
                         break
                     else:
                         #Wenn es leer ist füge das Feld hinzu
-                        possibleFields.append((xPosition+counter*i[0],yPosition+counter*i[1]))
+                        possibleFields.append((xPosition+counter*tupel[0],yPosition+counter*tupel[1]))
                         counter += 1
 
                     #Nur gültige Feldindizes verwenden, bei Überlauf abbrechen
-                    if xPosition+counter*i[0] >7 or xPosition+counter*i[0] <0 or yPosition+counter*i[1] >7 or yPosition+counter*i[1] <0:
+                    if xPosition+counter*tupel[0] >7 or xPosition+counter*tupel[0] <0 or yPosition+counter*tupel[1] >7 or yPosition+counter*tupel[1] <0:
                         break
                     
 
             #Spezielle Regeln für die Bauern
             if self.name == "Pawn":
-                valid = True
-                #Dürfen nicht zurückgehen
-                if self.color == "white" and i[1]>0 or self.color == "black" and i[1]<0:
-                    valid = False
+                #Bei bestimmten Bedingungen wird der Durchlauf abgebrochen. Ansonsten wird das Feld der Liste hinzugefügt
+
+                #Bauer darf nicht zurückgehen
+                if self.color == "white" and tupel[1]>0 or self.color == "black" and tupel[1]<0:
                     continue
 
                 #1. Prüfe Diagonale Felder
-                if i in [(-1,1),(-1,-1),(1,1),(1,-1)]:
-                    if board.boardArray[xZiel][yZiel] == None:
-                        print("Diagonale xZiel: " + str(xZiel) + " yZiel: " + str(yZiel))
-                        if self.color == "white" and board.boardArray[xZiel][yZiel+1] != None and board.boardArray[xZiel][yZiel+1].color == "black":
-                            print("xziel: " + str(xZiel) + " yziel: " + str(yZiel))
+                if tupel in [(-1,1),(-1,-1),(1,1),(1,-1)] and board.boardArray[xZiel][yZiel] == None:
+                        #en passant prüfen, und ggf. anhängen
+                        if board.boardArray[xZiel][yZiel-tupel[1]] != None and board.boardArray[xZiel][yZiel-tupel[1]].color != self.color:
                             possibleFields.append((xZiel,yZiel))
-                        if self.color == "black" and board.boardArray[xZiel][yZiel-1] != None and board.boardArray[xZiel][yZiel-1].color == "white":
-                            print("xziel: " + str(xZiel) + " yziel: " + str(yZiel))
-                            possibleFields.append((xZiel,yZiel))
-                        valid = False
+                        continue
                 
                 #2. Prüfe Vorwärts Felder
-                else:#i muss in [(0,1),(0,2),(0,-1),(0,-2)] sein
-                    if i in [(0,1),(0,-1)]:
-                        if self.color == "white":
-                            if board.boardArray[xPosition][yPosition -1] != None:
-                                valid = False
-                                nextFree=False
-                        elif self.color == "black":
-                            if board.boardArray[xPosition][yPosition +1] != None:
-                                valid = False
-                                nextFree=False
+                else:#tupel muss in [(0,1),(0,2),(0,-1),(0,-2)] enthalten sein
+                    if tupel in [(0,1),(0,-1)] and board.boardArray[xPosition][yPosition +tupel[1]] != None:
+                        nextFree = False
+                        continue
                     
-                    if i in [(0,2),(0,-2)]:
-                        if not self.isFirstMove or not nextFree:
-                            valid = False
-
-                if not valid:
-                    continue
-                
-            #print("INDEX x: ", x, "y: ", y)
+                    if tupel in [(0,2),(0,-2)] and not self.isFirstMove or not nextFree:
+                        continue
 
     	    #Darf sich an ein Feld bewegen, wenn es frei ist (None) oder wenn dort eine Figur mit anderer Farbe ist
             if board.boardArray[xZiel][yZiel] == None or board.boardArray[xZiel][yZiel].color != self.color:
@@ -238,16 +221,15 @@ class Board:
         self.whitePieces = whitePieces
         self.blackPieces = blackPieces
 
-        for i in whitePieces:
-            #print("i[0]=" + str(i[0]) + " i[1]=" + str(i[1]))
-            xPosition = i.position[0]
-            yPosition = i.position[1]
-            self.boardArray[xPosition][yPosition] = i
+        for piece in whitePieces:
+            xPosition = piece.position[0]
+            yPosition = piece.position[1]
+            self.boardArray[xPosition][yPosition] = piece
 
-        for i in blackPieces:
-            xPosition = i.position[0]
-            yPosition = i.position[1]
-            self.boardArray[xPosition][yPosition] = i
+        for piece in blackPieces:
+            xPosition = piece.position[0]
+            yPosition = piece.position[1]
+            self.boardArray[xPosition][yPosition] = piece
 
     #def movePiece(self, piece, newPosition):
     #    #Prüfen ob neues Feld erreichbar ist
