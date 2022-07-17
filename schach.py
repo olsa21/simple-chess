@@ -23,6 +23,8 @@ def placeText(text, x, y, color, size):
 
 class ChessPiece:
     name: str
+    #nach https://en.wikipedia.org/wiki/Chess_piece_relative_value#Standard_valuations
+    value: int
     position: tuple
     color: str
 
@@ -144,6 +146,7 @@ class ChessPiece:
 
 class King(ChessPiece):
     endlessDirection = False
+    value = 200
     def __init__(self, position, color):
         self.name = "King"
         self.position = position
@@ -155,6 +158,7 @@ class King(ChessPiece):
 
 class Queen(ChessPiece):
     endlessDirection = True
+    value = 9
     def __init__(self, position, color):
         self.name = "Queen"
         self.position = position
@@ -166,6 +170,7 @@ class Queen(ChessPiece):
 
 class Rook(ChessPiece):
     endlessDirection = True
+    value = 5
     def __init__(self, position, color):
         self.name = "Rook"
         self.position = position
@@ -177,6 +182,7 @@ class Rook(ChessPiece):
 
 class Bishop(ChessPiece):
     endlessDirection = True
+    value = 3
     def __init__(self, position, color):
         self.name = "Bishop"
         self.position = position
@@ -188,6 +194,7 @@ class Bishop(ChessPiece):
 
 class Knight(ChessPiece):
     endlessDirection = False
+    value = 3
     def __init__(self, position, color):
         self.name = "Knight"
         self.position = position
@@ -200,6 +207,7 @@ class Knight(ChessPiece):
 class Pawn(ChessPiece):
     isFirstMove = True
     endlessDirection = False
+    value = 1
 
     def __init__(self, position, color):
         self.name = "Pawn"
@@ -218,9 +226,45 @@ class Board:
     focusedPiece: ChessPiece = None
     isBlackTurn = True
 
-    def __init__(self, whitePieces, blackPieces):
-        self.whitePieces = whitePieces
-        self.blackPieces = blackPieces
+    def __init__(self):
+        #Figuren werden erstellt
+        #Wenn oben links die Position 0,0 ist
+        KingBlack = King((4,0), "black")
+        QueenBlack = Queen((3,0), "black")
+        RookBlack1 = Rook((0,0), "black")
+        RookBlack2 = Rook((7,0), "black")
+        BishopBlack1 = Bishop((2,0), "black")
+        BishopBlack2 = Bishop((5,0), "black")
+        KnightBlack1 = Knight((1,0), "black")
+        KnightBlack2 = Knight((6,0), "black")
+        PawnBlack1 = Pawn((0,1), "black")
+        PawnBlack2 = Pawn((1,1), "black")
+        PawnBlack3 = Pawn((2,1), "black")
+        PawnBlack4 = Pawn((3,1), "black")
+        PawnBlack5 = Pawn((4,1), "black")
+        PawnBlack6 = Pawn((5,1), "black")
+        PawnBlack7 = Pawn((6,1), "black")
+        PawnBlack8 = Pawn((7,1), "black")
+
+        KingWhite = King((4,7), "white")
+        QueenWhite = Queen((3,7), "white")
+        RookWhite1 = Rook((0,7), "white")
+        RookWhite2 = Rook((7,7), "white")
+        BishopWhite1 = Bishop((2,7), "white")
+        BishopWhite2 = Bishop((5,7), "white")
+        KnightWhite1 = Knight((1,7), "white")
+        KnightWhite2 = Knight((6,7), "white")
+        PawnWhite1 = Pawn((0,6), "white")
+        PawnWhite2 = Pawn((1,6), "white")
+        PawnWhite3 = Pawn((2,6), "white")
+        PawnWhite4 = Pawn((3,6), "white")
+        PawnWhite5 = Pawn((4,6), "white")
+        PawnWhite6 = Pawn((5,6), "white")
+        PawnWhite7 = Pawn((6,6), "white")
+        PawnWhite8 = Pawn((7,6), "white")
+
+        blackPieces = [KingBlack, QueenBlack, RookBlack1, RookBlack2, BishopBlack1, BishopBlack2, KnightBlack1, KnightBlack2, PawnBlack1, PawnBlack2, PawnBlack3, PawnBlack4, PawnBlack5, PawnBlack6, PawnBlack7, PawnBlack8]
+        whitePieces = [KingWhite, QueenWhite, RookWhite1, RookWhite2, BishopWhite1, BishopWhite2, KnightWhite1, KnightWhite2, PawnWhite1, PawnWhite2, PawnWhite3, PawnWhite4, PawnWhite5, PawnWhite6, PawnWhite7, PawnWhite8]
 
         for piece in whitePieces:
             xPosition = piece.position[0]
@@ -231,40 +275,6 @@ class Board:
             xPosition = piece.position[0]
             yPosition = piece.position[1]
             self.boardArray[xPosition][yPosition] = piece
-
-    #def movePiece(self, piece, newPosition):
-    #    #Prüfen ob neues Feld erreichbar ist
-    #    if newPosition not in piece.getPossibleMoves():
-    #        return False
-#
-    #    #Alte Position freigeben
-    #    self.boardArray[piece.position[0]][piece.position[1]] = None
-#
-    #    #Prüfen ob neues Feld belegt ist
-    #    if self.boardArray[newPosition[0]][newPosition[1]] != None and self.boardArray[newPosition[0]][newPosition[1]].color == piece.color:
-    #        print("Feld belegt")
-    #    else:
-    #        #Neue Position belegen
-    #        piece.position = newPosition
-    #        self.boardArray[newPosition[0]][newPosition[1]] = piece
-    #        piece.position = newPosition
-    #        #en passant prüfen
-    #        if piece.name == "Pawn":
-    #            if piece.color == "white" and board.boardArray[newPosition[0]][newPosition[1]+1] != None and board.boardArray[newPosition[0]][newPosition[1]+1].color == "black":
-    #                self.boardArray[newPosition[0]][newPosition[1]+1] = None
-    #            if piece.color == "black" and board.boardArray[newPosition[0]][newPosition[1]-1] != None and board.boardArray[newPosition[0]][newPosition[1]-1].color == "white":
-    #                self.boardArray[newPosition[0]][newPosition[1]-1] = None
-    #            if newPosition[1] == 7 or newPosition[1] == 0:
-    #                self.boardArray[newPosition[0]][newPosition[1]] = Queen(newPosition, piece.color)
-#
-    #            
-#
-    #    #Fokus aufheben, wenn erfolgreich bewegt wurde
-    #    self.focusedPiece = None
-    #    board.isBlackTurn = not board.isBlackTurn
-    #    if piece.name == "Pawn":
-    #        piece.isFirstMove = False
-    #    return True
 
     def getPiece(self, x, y):
         return self.boardArray[x][y]
@@ -323,52 +333,11 @@ class Board:
         pygame.display.update()
 
 
-
-
-#Figuren werden erstellt
-#Wenn oben links die Position 0,0 ist
-KingBlack = King((4,0), "black")
-QueenBlack = Queen((3,0), "black")
-RookBlack1 = Rook((0,0), "black")
-RookBlack2 = Rook((7,0), "black")
-BishopBlack1 = Bishop((2,0), "black")
-BishopBlack2 = Bishop((5,0), "black")
-KnightBlack1 = Knight((1,0), "black")
-KnightBlack2 = Knight((6,0), "black")
-PawnBlack1 = Pawn((0,1), "black")
-PawnBlack2 = Pawn((1,1), "black")
-PawnBlack3 = Pawn((2,1), "black")
-PawnBlack4 = Pawn((3,1), "black")
-PawnBlack5 = Pawn((4,1), "black")
-PawnBlack6 = Pawn((5,1), "black")
-PawnBlack7 = Pawn((6,1), "black")
-PawnBlack8 = Pawn((7,1), "black")
-
-KingWhite = King((4,7), "white")
-QueenWhite = Queen((3,7), "white")
-RookWhite1 = Rook((0,7), "white")
-RookWhite2 = Rook((7,7), "white")
-BishopWhite1 = Bishop((2,7), "white")
-BishopWhite2 = Bishop((5,7), "white")
-KnightWhite1 = Knight((1,7), "white")
-KnightWhite2 = Knight((6,7), "white")
-PawnWhite1 = Pawn((0,6), "white")
-PawnWhite2 = Pawn((1,6), "white")
-PawnWhite3 = Pawn((2,6), "white")
-PawnWhite4 = Pawn((3,6), "white")
-PawnWhite5 = Pawn((4,6), "white")
-PawnWhite6 = Pawn((5,6), "white")
-PawnWhite7 = Pawn((6,6), "white")
-PawnWhite8 = Pawn((7,6), "white")
-
-BlackPieceList = [KingBlack, QueenBlack, RookBlack1, RookBlack2, BishopBlack1, BishopBlack2, KnightBlack1, KnightBlack2, PawnBlack1, PawnBlack2, PawnBlack3, PawnBlack4, PawnBlack5, PawnBlack6, PawnBlack7, PawnBlack8]
-WhitePieceList = [KingWhite, QueenWhite, RookWhite1, RookWhite2, BishopWhite1, BishopWhite2, KnightWhite1, KnightWhite2, PawnWhite1, PawnWhite2, PawnWhite3, PawnWhite4, PawnWhite5, PawnWhite6, PawnWhite7, PawnWhite8]
-
 def gameWindow():
     window = pygame.display.set_mode((screenWidth, screenWidth))
 
     pygame.display.set_caption("Python Chess")
-    board = Board(WhitePieceList, BlackPieceList)
+    board = Board()
 
     board.drawBoard(window, board)
     pygame.display.update()
