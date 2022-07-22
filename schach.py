@@ -14,13 +14,6 @@ padding = (screenWidth - (blocks * blockSize)) /2
 print("padding: " + str(padding))
 colorPossible = (154,225,255)
 
-def placeText(text, x, y, color, size):
-    pygame.font.init()
-    font = pygame.font.SysFont("comicsans", size)
-    text = font.render(text, 1, color)
-    window.blit(text, (x, y))
-    pygame.display.update()
-
 class ChessPiece:
     name: str
     #nach https://en.wikipedia.org/wiki/Chess_piece_relative_value#Standard_valuations
@@ -85,7 +78,7 @@ class ChessPiece:
 
         if len(board.blackPieces) == 0 or len(board.whitePieces) == 0:
             board.winner = "white" if len(board.whitePieces) > len(board.blackPieces) else "black"
-            board.isWon = True
+            board.isGameOver = True
         return True
 
     def getPossibleMoves(self, board):
@@ -115,7 +108,7 @@ class ChessPiece:
                         #Wenn auf dem Feld ein anderer Spieler ist füge noch hinzu
                         if  board.boardArray[xPosition+counter*tupel[0]][yPosition+counter*tupel[1]].color != self.color:
                             if board.boardArray[xPosition+counter*tupel[0]][yPosition+counter*tupel[1]].name == "King":
-                                board.isWon = True
+                                board.isGameOver = True
                                 board.winner = self.color
                             possibleFields.append((xPosition+counter*tupel[0],yPosition+counter*tupel[1]))
                         break
@@ -239,7 +232,7 @@ class Pawn(ChessPiece):
         
 
 class Board:
-    isWon = False
+    isGameOver = False
     winner: str
     whitePoints = 0
     blackPoints = 0
@@ -422,15 +415,11 @@ def gameWindow(startingColor):
         pygame.time.delay(50)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                print("Points of black: ", board.blackPoints)
-                print("Points of white: ", board.whitePoints)
                 #menu_window()
-                pygame.quit()
+                pygame.display.quit()
                 menu_window("black" if board.blackPoints > board.whitePoints else "white")
             
-            if board.isWon:
-                print("Points of black: ", board.blackPoints)
-                print("Points of white: ", board.whitePoints)
+            if board.isGameOver:
                 messagebox.showinfo("Schachmatt", "Schachmatt")
                 pygame.display.quit()
                 menu_window(board.winner)
@@ -509,8 +498,8 @@ def menu_window(winner = None):
     [sg.Text('Schachspiel', size=(20, 1),
              justification='center', font=('Helvetica', 20), key='title')],
     [sg.Text("Welche Farbe beginnt?", size=(20, 1),)],
-    [sg.Image(radio_checked, enable_events=True, k='-R1-', metadata=True), sg.T('Schwarz', enable_events=True, k='-T1-')],
-    [sg.Image(radio_unchecked, enable_events=True, k='-R2-', metadata=False), sg.T('Weiß', enable_events=True, k='-T2-')],
+    [sg.Image(radio_unchecked, enable_events=True, k='-R1-', metadata=False), sg.T('Schwarz', enable_events=True, k='-T1-')],
+    [sg.Image(radio_checked, enable_events=True, k='-R2-', metadata=True), sg.T('Weiß', enable_events=True, k='-T2-')],
     [sg.Button('Spiel starten', button_color=('white', 'black'), key='start', size=(20, 1)),],
     ]
 
